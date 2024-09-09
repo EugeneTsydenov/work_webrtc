@@ -10,12 +10,28 @@ const MEDIA_CONSTRAINTS = {
 }
 
 const ICE_SERVERS = {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
-    { urls: 'stun:stun3.l.google.com:19302' },
-    { urls: 'stun:stun4.l.google.com:19302' },
+  iceServers:[
+    {
+      "urls": "stun:stun.kinesisvideo.ap-northeast-2.amazonaws.com:443"
+    },
+    {
+      "urls": [
+        "turn:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
+        "turns:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
+        "turns:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=tcp"
+      ],
+      "username": "1725892991:djE6YXJuOmF3czpraW5lc2lzdmlkZW86YXAtbm9ydGhlYXN0LTI6MTc1NjczMjE5Njg2OmNoYW5uZWwvS29yZWFuU2ltcGxlLVR1dG9yaW5nLzE3MjU1MzgyODMyNzU=",
+      "credential": "y+0BmYEG53VMko977KvdkH26RBjebtuS1FO9mRYBFko="
+    },
+    {
+      "urls": [
+        "turn:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
+        "turns:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
+        "turns:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=tcp"
+      ],
+      "username": "1725892991:djE6YXJuOmF3czpraW5lc2lzdmlkZW86YXAtbm9ydGhlYXN0LTI6MTc1NjczMjE5Njg2OmNoYW5uZWwvS29yZWFuU2ltcGxlLVR1dG9yaW5nLzE3MjU1MzgyODMyNzU=",
+      "credential": "+GV8OornFXMSVDj3JACtO0t0uOYwjM3ExzUNJafElYk="
+    }
   ],
 }
 
