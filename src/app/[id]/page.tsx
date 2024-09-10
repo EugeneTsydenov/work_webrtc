@@ -1,38 +1,12 @@
-'use client'
+'use client';
 
 import * as React from 'react';
-import {useParams} from "next/navigation";
-import {io, Socket} from "socket.io-client";
+import { useParams } from 'next/navigation';
+import { io, Socket } from 'socket.io-client';
 
 const MEDIA_CONSTRAINTS = {
   audio: true,
   video: { width: 1280, height: 720 },
-}
-
-const ICE_SERVERS = {
-  iceServers:[
-    {
-      "urls": "stun:stun.kinesisvideo.ap-northeast-2.amazonaws.com:443"
-    },
-    {
-      "urls": [
-        "turn:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
-        "turns:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
-        "turns:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=tcp"
-      ],
-      "username": "1725892991:djE6YXJuOmF3czpraW5lc2lzdmlkZW86YXAtbm9ydGhlYXN0LTI6MTc1NjczMjE5Njg2OmNoYW5uZWwvS29yZWFuU2ltcGxlLVR1dG9yaW5nLzE3MjU1MzgyODMyNzU=",
-      "credential": "y+0BmYEG53VMko977KvdkH26RBjebtuS1FO9mRYBFko="
-    },
-    {
-      "urls": [
-        "turn:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
-        "turns:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
-        "turns:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=tcp"
-      ],
-      "username": "1725892991:djE6YXJuOmF3czpraW5lc2lzdmlkZW86YXAtbm9ydGhlYXN0LTI6MTc1NjczMjE5Njg2OmNoYW5uZWwvS29yZWFuU2ltcGxlLVR1dG9yaW5nLzE3MjU1MzgyODMyNzU=",
-      "credential": "+GV8OornFXMSVDj3JACtO0t0uOYwjM3ExzUNJafElYk="
-    }
-  ],
 }
 
 const onFullRoom = () => {
@@ -40,7 +14,6 @@ const onFullRoom = () => {
   alert('The room is full, please try another one')
 }
 
-//https://dev.api.tutor.koreansimple.com
 
 const Page = () => {
   const {id: roomId} = useParams<{id: string}>()
@@ -52,6 +25,49 @@ const Page = () => {
   const remoteStream = React.useRef<MediaStream | null>(null)
   const remoteVideoRef = React.useRef<HTMLVideoElement | null>(null)
   const socket = React.useRef<Socket<any, any> | null>(null)
+
+  // Функция для получения ICE-серверов
+  const getIceServers = React.useCallback(async (): Promise<{iceServers: any[]}> => {
+    try {
+      const response = await fetch(
+        `https://dev.api.tutor.koreansimple.com/v1/rtc/ice-servers`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+       return await response.json();  // Сохраняем ICE-серверы
+    } catch (error) {
+      return {
+        iceServers:[
+          {
+            "urls": "stun:stun.kinesisvideo.ap-northeast-2.amazonaws.com:443"
+          },
+          {
+            "urls": [
+              "turn:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
+              "turns:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
+              "turns:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=tcp"
+            ],
+            "username": "1725892991:djE6YXJuOmF3czpraW5lc2lzdmlkZW86YXAtbm9ydGhlYXN0LTI6MTc1NjczMjE5Njg2OmNoYW5uZWwvS29yZWFuU2ltcGxlLVR1dG9yaW5nLzE3MjU1MzgyODMyNzU=",
+            "credential": "y+0BmYEG53VMko977KvdkH26RBjebtuS1FO9mRYBFko="
+          },
+          {
+            "urls": [
+              "turn:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
+              "turns:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
+              "turns:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=tcp"
+            ],
+            "username": "1725892991:djE6YXJuOmF3czpraW5lc2lzdmlkZW86YXAtbm9ydGhlYXN0LTI6MTc1NjczMjE5Njg2OmNoYW5uZWwvS29yZWFuU2ltcGxlLVR1dG9yaW5nLzE3MjU1MzgyODMyNzU=",
+            "credential": "+GV8OornFXMSVDj3JACtO0t0uOYwjM3ExzUNJafElYk="
+          }
+        ],
+      }
+
+    }
+  }, []);
 
   const setLocalStream = async () => {
     try {
@@ -142,24 +158,26 @@ const Page = () => {
   const onStartCall = React.useCallback(async () => {
     console.log('Socket event callback: start_call')
     if(isRoomCreator.current) {
-      peerConnection.current = new RTCPeerConnection(ICE_SERVERS)
+      const iceServers = await getIceServers()
+      peerConnection.current = new RTCPeerConnection(iceServers)
       addLocalTracks()
       peerConnection.current.ontrack = setRemoteStream
       peerConnection.current.onicecandidate = sendIceCandidate
       await createOffer()
     }
-  }, [createOffer, sendIceCandidate])
+  }, [createOffer, getIceServers, sendIceCandidate])
 
   const onOffer = React.useCallback(async (sdp: RTCSessionDescriptionInit) => {
     if(!isRoomCreator.current) {
-      peerConnection.current = new RTCPeerConnection(ICE_SERVERS)
+      const iceServers = await getIceServers()
+      peerConnection.current = new RTCPeerConnection(iceServers)
       addLocalTracks()
       peerConnection.current.ontrack = setRemoteStream
       peerConnection.current.onicecandidate = sendIceCandidate
       await peerConnection.current.setRemoteDescription(new RTCSessionDescription(sdp))
       await createAnswer()
     }
-  }, [createAnswer, sendIceCandidate])
+  }, [createAnswer, getIceServers, sendIceCandidate])
 
   const onAnswer = React.useCallback(async (sdp: RTCSessionDescriptionInit) => {
     console.log('Socket event callback: webrtc_answer')
@@ -185,6 +203,12 @@ const Page = () => {
     }
   }, [socket, roomId])
 
+  const onReconnect = React.useCallback(() => {
+    if(socket.current) {
+      socket.current.emit('join', roomId);
+    }
+  }, [roomId])
+
   React.useEffect(() => {
     const currentSocket = socket.current
     console.log(currentSocket)
@@ -196,6 +220,7 @@ const Page = () => {
       currentSocket.on('offer', onOffer)
       currentSocket.on('answer', onAnswer)
       currentSocket.on('iceCandidate', onIceCandidate)
+      currentSocket.on('reconnect', onReconnect);
     }
 
     return () => {
@@ -207,9 +232,10 @@ const Page = () => {
         currentSocket.off('offer', onOffer)
         currentSocket.off('answer', onAnswer)
         currentSocket.off('iceCandidate', onIceCandidate)
+        currentSocket.off('reconnect', onReconnect)
       }
     }
-  }, [socket, onRoomCreated, onRoomJoined, onStartCall, onOffer, onAnswer, onIceCandidate])
+  }, [socket, onRoomCreated, onRoomJoined, onStartCall, onOffer, onAnswer, onIceCandidate, onReconnect])
 
   return (
     <div>
