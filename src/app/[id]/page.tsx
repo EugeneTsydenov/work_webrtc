@@ -24,10 +24,10 @@ const Page = () => {
   const localVideoRef = React.useRef<HTMLVideoElement | null>(null)
   const remoteStream = React.useRef<MediaStream | null>(null)
   const remoteVideoRef = React.useRef<HTMLVideoElement | null>(null)
-  const socket = React.useRef<Socket<any, any> | null>(null)
+    const socket = React.useRef<Socket<any, any> | null>(null)
 
   // Функция для получения ICE-серверов
-  const getIceServers = React.useCallback(async (): Promise<{iceServers: any[]}> => {
+  const getIceServers = React.useCallback(async (): Promise<any[]> => {
     try {
       const response = await fetch(
         `https://dev.api.tutor.koreansimple.com/v1/rtc/ice-servers`,
@@ -40,31 +40,29 @@ const Page = () => {
       );
        return await response.json();  // Сохраняем ICE-серверы
     } catch (error) {
-      return {
-        iceServers:[
-          {
-            "urls": "stun:stun.kinesisvideo.ap-northeast-2.amazonaws.com:443"
-          },
-          {
-            "urls": [
-              "turn:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
-              "turns:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
-              "turns:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=tcp"
-            ],
-            "username": "1725892991:djE6YXJuOmF3czpraW5lc2lzdmlkZW86YXAtbm9ydGhlYXN0LTI6MTc1NjczMjE5Njg2OmNoYW5uZWwvS29yZWFuU2ltcGxlLVR1dG9yaW5nLzE3MjU1MzgyODMyNzU=",
-            "credential": "y+0BmYEG53VMko977KvdkH26RBjebtuS1FO9mRYBFko="
-          },
-          {
-            "urls": [
-              "turn:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
-              "turns:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
-              "turns:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=tcp"
-            ],
-            "username": "1725892991:djE6YXJuOmF3czpraW5lc2lzdmlkZW86YXAtbm9ydGhlYXN0LTI6MTc1NjczMjE5Njg2OmNoYW5uZWwvS29yZWFuU2ltcGxlLVR1dG9yaW5nLzE3MjU1MzgyODMyNzU=",
-            "credential": "+GV8OornFXMSVDj3JACtO0t0uOYwjM3ExzUNJafElYk="
-          }
-        ],
-      }
+      return [
+        {
+          "urls": "stun:stun.kinesisvideo.ap-northeast-2.amazonaws.com:443"
+        },
+        {
+          "urls": [
+            "turn:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
+            "turns:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
+            "turns:52-78-139-153.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=tcp"
+          ],
+          "username": "1725892991:djE6YXJuOmF3czpraW5lc2lzdmlkZW86YXAtbm9ydGhlYXN0LTI6MTc1NjczMjE5Njg2OmNoYW5uZWwvS29yZWFuU2ltcGxlLVR1dG9yaW5nLzE3MjU1MzgyODMyNzU=",
+          "credential": "y+0BmYEG53VMko977KvdkH26RBjebtuS1FO9mRYBFko="
+        },
+        {
+          "urls": [
+            "turn:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
+            "turns:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=udp",
+            "turns:43-203-254-165.t-cf94f1b5.kinesisvideo.ap-northeast-2.amazonaws.com:443?transport=tcp"
+          ],
+          "username": "1725892991:djE6YXJuOmF3czpraW5lc2lzdmlkZW86YXAtbm9ydGhlYXN0LTI6MTc1NjczMjE5Njg2OmNoYW5uZWwvS29yZWFuU2ltcGxlLVR1dG9yaW5nLzE3MjU1MzgyODMyNzU=",
+          "credential": "+GV8OornFXMSVDj3JACtO0t0uOYwjM3ExzUNJafElYk="
+        }
+      ]
 
     }
   }, []);
@@ -112,6 +110,7 @@ const Page = () => {
     try {
       if(peerConnection.current) {
         const sdp = await peerConnection.current.createOffer()
+        console.log('@CREATE_OFFER', sdp);
         await peerConnection.current.setLocalDescription(sdp)
         if(socket.current) {
           socket.current.emit('offer', {
@@ -129,6 +128,7 @@ const Page = () => {
     try {
       if(peerConnection.current) {
         const sdp = await peerConnection.current.createAnswer()
+        console.log('@CREATE_ANSWER', sdp);
         await peerConnection.current.setLocalDescription(sdp)
         if(socket.current) {
           socket.current.emit('answer', {
@@ -159,7 +159,7 @@ const Page = () => {
     console.log('Socket event callback: start_call')
     if(isRoomCreator.current) {
       const iceServers = await getIceServers()
-      peerConnection.current = new RTCPeerConnection(iceServers)
+      peerConnection.current = new RTCPeerConnection({iceServers})
       addLocalTracks()
       peerConnection.current.ontrack = setRemoteStream
       peerConnection.current.onicecandidate = sendIceCandidate
@@ -168,9 +168,10 @@ const Page = () => {
   }, [createOffer, getIceServers, sendIceCandidate])
 
   const onOffer = React.useCallback(async (sdp: RTCSessionDescriptionInit) => {
+    console.log('@ON OFFER', sdp);
     if(!isRoomCreator.current) {
       const iceServers = await getIceServers()
-      peerConnection.current = new RTCPeerConnection(iceServers)
+      peerConnection.current = new RTCPeerConnection({ iceServers })
       addLocalTracks()
       peerConnection.current.ontrack = setRemoteStream
       peerConnection.current.onicecandidate = sendIceCandidate
@@ -180,13 +181,14 @@ const Page = () => {
   }, [createAnswer, getIceServers, sendIceCandidate])
 
   const onAnswer = React.useCallback(async (sdp: RTCSessionDescriptionInit) => {
-    console.log('Socket event callback: webrtc_answer')
+    console.log('@ON ANSWER', sdp)
     if(peerConnection.current) {
       await peerConnection.current.setRemoteDescription(sdp)
     }
   }, [])
 
   const onIceCandidate = React.useCallback(async (data: { candidate: string, roomId: string, label: number }) => {
+    console.log('@ON ICE CANDIDATE', data);
     const candidate = new RTCIceCandidate({sdpMLineIndex: data.label, candidate:  data.candidate})
     if(peerConnection.current) {
       await peerConnection.current.addIceCandidate(candidate)
